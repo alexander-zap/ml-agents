@@ -56,9 +56,13 @@ repos:
             (?x)^(
                 .*cs.meta|
                 .*.css|
-                .*.meta
+                .*.meta|
+                .*.asset|
+                .*.prefab|
+                .*.unity|
+                .*.json
             )$
-        args: [--fix=lf]
+        args: [--fix=crlf]
 
     -   id: trailing-whitespace
         name: trailing-whitespace-markdown

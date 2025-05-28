@@ -6,7 +6,6 @@ import yaml
 import argparse
 import hashlib
 
-
 # pydoc-markdown -I . -m module_name --render_toc > doc.md
 
 
@@ -52,8 +51,8 @@ def remove_trailing_whitespace(filename):
     # compare source and destination and write only if changed
     if source_file != destination_file:
         num_changed += 1
-        with open(filename, "wb") as f:
-            f.write(destination_file.encode())
+        with open(filename, "w", newline="\r\n") as f:
+            f.write(destination_file)
 
 
 if __name__ == "__main__":
@@ -84,7 +83,7 @@ if __name__ == "__main__":
                 for submodule in submodules:
                     module_args.append("-m")
                     module_args.append(f"{module_name}.{submodule}")
-                with open(output_file_name, "w") as output_file:
+                with open(output_file_name, "wb") as output_file:
                     subprocess_args = [
                         "pydoc-markdown",
                         "-I",
