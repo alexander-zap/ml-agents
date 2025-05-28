@@ -58,12 +58,12 @@ setup(
         "Pillow>=4.2.1",
         "protobuf>=3.6,<3.21",
         "pyyaml>=3.1.0",
-        "gym>=0.21.0",
-        "pettingzoo==1.15.0",
-        "numpy>=1.23.5,<1.24.0",
+        "gymnasium>=0.25.0",
+        "pettingzoo>=1.15.0",
+        "numpy>=1.23.5,<2.0",
         "filelock>=3.4.0",
     ],
-    python_requires=">=3.10.1,<=3.10.12",
+    python_requires=">=3.9,<4",
     # TODO: Remove this once mypy stops having spurious setuptools issues.
     cmdclass={"verify": VerifyVersionCommand},  # type: ignore
 )

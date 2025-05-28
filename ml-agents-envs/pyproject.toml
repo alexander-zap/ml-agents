@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "mlagents_envs"
+version = "1.2.0.dev0"
+description = "Unity Machine Learning Agents Interface"
+homepage = "https://github.com/Unity-Technologies/ml-agents"
+authors = ["Unity Technologies <ML-Agents@unity3d.com>"]
+classifiers=[
+        "Intended Audience :: Developers",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+]
+readme = "README.md"
+
+packages = [
+    { include = "mlagents_envs", from = "." },
+]
+include = ["mlagents_envs/*"]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests", "colabs", "*.ipynb"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+grpcio = ">=1.11.0,<=1.48.2"
+Pillow = ">=4.2.1"
+protobuf = ">=3.6,<3.21"
+pyyaml = ">=3.1.0"
+gymnasium = ">=0.25.0"
+pettingzoo = ">=1.15.0"
+numpy = ">=1.23.5,<2.0"
+filelock = ">=3.4.0"
+cloudpickle = "*"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

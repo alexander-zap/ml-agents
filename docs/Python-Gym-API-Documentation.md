@@ -59,18 +59,22 @@ Environment initialization
 #### reset
 
 ```python
- | reset() -> Union[List[np.ndarray], np.ndarray]
+ | reset(*, seed: int | None = None, options: dict[str, Any] | None = None) -> Tuple[np.ndarray, Dict]
 ```
 
-Resets the state of the environment and returns an initial observation.
-Returns: observation (object/list): the initial observation of the
-space.
+Resets the state of the environment and returns an initial observation and info.
+
+**Returns**:
+
+- `observation` _object/list_ - the initial observation of the
+  space.
+- `info` _dict_ - contains auxiliary diagnostic information.
 
 <a name="mlagents_envs.envs.unity_gym_env.UnityToGymWrapper.step"></a>
 #### step
 
 ```python
- | step(action: List[Any]) -> GymStepResult
+ | step(action: Any) -> GymStepResult
 ```
 
 Run one timestep of the environment's dynamics. When end of
@@ -86,14 +90,15 @@ Accepts an action and returns a tuple (observation, reward, done, info).
 
 - `observation` _object/list_ - agent's observation of the current environment
   reward (float/list) : amount of reward returned after previous action
-- `done` _boolean/list_ - whether the episode has ended.
+- `terminated` _boolean/list_ - whether the episode has ended by termination.
+- `truncated` _boolean/list_ - whether the episode has ended by truncation.
 - `info` _dict_ - contains auxiliary diagnostic information.
 
 <a name="mlagents_envs.envs.unity_gym_env.UnityToGymWrapper.render"></a>
 #### render
 
 ```python
- | render(mode="rgb_array")
+ | render()
 ```
 
 Return the latest visual observations.
