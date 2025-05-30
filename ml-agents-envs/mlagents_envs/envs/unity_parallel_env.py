@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any, Tuple
-from gym import error
+from gymnasium import error
 from mlagents_envs.base_env import BaseEnv
 from pettingzoo import ParallelEnv
 
