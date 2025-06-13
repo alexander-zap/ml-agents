@@ -40,8 +40,6 @@ def _unwrap_batch_steps(batch_steps, behavior_name):
             }
         )
     obs = {k: v if len(v) > 1 else v[0] for k, v in obs.items()}
-    dones = {agent_id: True for agent_id in termination_id}
-    dones.update({agent_id: False for agent_id in decision_id})
     rewards = {
         agent_id: termination_batch.reward[i]
         for i, agent_id in enumerate(termination_id)
@@ -51,19 +49,35 @@ def _unwrap_batch_steps(batch_steps, behavior_name):
     )
     cumulative_rewards = {k: v for k, v in rewards.items()}
     infos = {}
+    terminations = {}
+    truncations = {}
     for i, agent_id in enumerate(decision_id):
         infos[agent_id] = {}
         infos[agent_id]["behavior_name"] = behavior_name
         infos[agent_id]["group_id"] = decision_batch.group_id[i]
         infos[agent_id]["group_reward"] = decision_batch.group_reward[i]
+        truncations[agent_id] = False
+        terminations[agent_id] = False
     for i, agent_id in enumerate(termination_id):
         infos[agent_id] = {}
         infos[agent_id]["behavior_name"] = behavior_name
         infos[agent_id]["group_id"] = termination_batch.group_id[i]
         infos[agent_id]["group_reward"] = termination_batch.group_reward[i]
         infos[agent_id]["interrupted"] = termination_batch.interrupted[i]
+        truncated = termination_batch.interrupted[i]
+        truncations[agent_id] = truncated
+        terminations[agent_id] = not truncated
     id_map = {agent_id: i for i, agent_id in enumerate(decision_id)}
-    return agents, obs, dones, rewards, cumulative_rewards, infos, id_map
+    return (
+        agents,
+        obs,
+        terminations,
+        truncations,
+        rewards,
+        cumulative_rewards,
+        infos,
+        id_map,
+    )
 
 
 def _parse_behavior(full_behavior):

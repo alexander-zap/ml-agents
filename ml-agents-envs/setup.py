@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 import mlagents_envs
 
-VERSION = mlagents_envs.__version__
+VERSION = (None,)
 EXPECTED_TAG = mlagents_envs.__release_tag__
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -35,7 +35,7 @@ with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="mlagents_envs",
-    version=VERSION,
+    version=None,
     description="Unity Machine Learning Agents Interface",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -59,7 +59,7 @@ setup(
         "protobuf>=3.6,<3.21",
         "pyyaml>=3.1.0",
         "gymnasium>=0.25.0",
-        "pettingzoo>=1.15.0",
+        "pettingzoo>=1.22.0",
         "numpy>=1.23.5,<2.0",
         "filelock>=3.4.0",
     ],

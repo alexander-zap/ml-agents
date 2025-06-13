@@ -32,7 +32,8 @@ class UnityPettingzooBaseEnv:
         self._possible_agents: Set[str] = set()  # all agents that have ever appear
         self._agent_id_to_index: Dict[str, int] = {}  # agent_id: index in decision step
         self._observations: Dict[str, np.ndarray] = {}  # agent_id: obs
-        self._dones: Dict[str, bool] = {}  # agent_id: done
+        self._terminations: Dict[str, bool] = {}  # agent_id: terminated
+        self._truncations: Dict[str, bool] = {}  # agent_id: truncated
         self._rewards: Dict[str, float] = {}  # agent_id: reward
         self._cumm_rewards: Dict[str, float] = {}  # agent_id: reward
         self._infos: Dict[str, Dict] = {}  # agent_id: info
@@ -45,7 +46,7 @@ class UnityPettingzooBaseEnv:
         if not self._env.behavior_specs:
             self._env.step()
             for behavior_name in self._env.behavior_specs.keys():
-                _, _, _ = self._batch_update(behavior_name)
+                _, _, _, _ = self._batch_update(behavior_name)
         self._update_observation_spaces()
         self._update_action_spaces()
 
@@ -162,7 +163,7 @@ class UnityPettingzooBaseEnv:
             else:
                 action = ActionTuple(action, None)
 
-        if not self._dones[current_agent]:
+        if not self._terminations[current_agent] or self._truncations[current_agent]:
             current_behavior = _agent_id_to_behavior(current_agent)
             current_index = self._agent_id_to_index[current_agent]
             if action.continuous is not None:
@@ -176,7 +177,8 @@ class UnityPettingzooBaseEnv:
         else:
             self._live_agents.remove(current_agent)
             del self._observations[current_agent]
-            del self._dones[current_agent]
+            del self._terminations[current_agent]
+            del self._truncations[current_agent]
             del self._rewards[current_agent]
             del self._cumm_rewards[current_agent]
             del self._infos[current_agent]
@@ -187,15 +189,22 @@ class UnityPettingzooBaseEnv:
         self._env.step()
         self._reset_states()
         for behavior_name in self._env.behavior_specs.keys():
-            dones, rewards, cumulative_rewards = self._batch_update(behavior_name)
-            self._dones.update(dones)
+            terminations, truncations, rewards, cumulative_rewards = self._batch_update(
+                behavior_name
+            )
+            self._terminations.update(terminations)
+            self._truncations.update(truncations)
             self._rewards.update(rewards)
             self._cumm_rewards.update(cumulative_rewards)
         self._agent_index = 0
 
     def _cleanup_agents(self):
-        for current_agent, done in self.dones.items():
-            if done:
+        for current_agent, terminated in self.terminations.items():
+            if terminated:
+                self._live_agents.remove(current_agent)
+
+        for current_agent, truncated in self.truncations.items():
+            if truncated:
                 self._live_agents.remove(current_agent)
 
     @property
@@ -226,25 +235,33 @@ class UnityPettingzooBaseEnv:
         self._live_agents = []
         self._agents = []
         self._observations = {}
-        self._dones = {}
+        self._terminations = {}
+        self._truncations = {}
         self._rewards = {}
         self._cumm_rewards = {}
         self._infos = {}
         self._agent_id_to_index = {}
 
-    def reset(self):
+    def reset(
+        self,
+        seed: int | None = None,
+        options: dict | None = None,
+    ) -> Any:
         """
         Resets the environment.
         """
+        self._seed = seed
+
         self._assert_loaded()
         self._agent_index = 0
         self._reset_states()
         self._possible_agents = set()
         self._env.reset()
         for behavior_name in self._env.behavior_specs.keys():
-            _, _, _ = self._batch_update(behavior_name)
+            _, _, _, _ = self._batch_update(behavior_name)
         self._live_agents.sort()  # unnecessary, only for passing API test
-        self._dones = {agent: False for agent in self._agents}
+        self._terminations = {agent: False for agent in self._agents}
+        self._truncations = {agent: False for agent in self._agents}
         self._rewards = {agent: 0 for agent in self._agents}
         self._cumm_rewards = {agent: 0 for agent in self._agents}
 
@@ -256,7 +273,8 @@ class UnityPettingzooBaseEnv:
         (
             agents,
             obs,
-            dones,
+            terminations,
+            truncations,
             rewards,
             cumulative_rewards,
             infos,
@@ -268,29 +286,28 @@ class UnityPettingzooBaseEnv:
         self._infos.update(infos)
         self._agent_id_to_index.update(id_map)
         self._possible_agents.update(agents)
-        return dones, rewards, cumulative_rewards
+        return terminations, truncations, rewards, cumulative_rewards
 
-    def seed(self, seed=None):
-        """
-        Reseeds the environment (making the resulting environment deterministic).
-        `reset()` must be called after `seed()`, and before `step()`.
-        """
-        self._seed = seed
-
-    def render(self, mode="human"):
+    def render(self):
         """
         NOT SUPPORTED.
 
-        Displays a rendered frame from the environment, if supported.
-        Alternate render modes in the default environments are `'rgb_array'`
+        Renders the environment as specified by self.render_mode, if supported.
+
+        Render mode can be `human` to display a window.
+        Other render modes in the default environments are `'rgb_array'`
         which returns a numpy array and is supported by all environments outside of classic,
         and `'ansi'` which returns the strings printed (specific to classic environments).
         """
         pass
 
     @property
-    def dones(self):
-        return dict(self._dones)
+    def terminations(self):
+        return dict(self._terminations)
+
+    @property
+    def truncations(self):
+        return dict(self._truncations)
 
     @property
     def agents(self):

@@ -20,13 +20,17 @@ class UnityParallelEnv(UnityPettingzooBaseEnv, ParallelEnv):
         """
         super().__init__(env, seed)
 
-    def reset(self) -> Dict[str, Any]:
+    def reset(
+        self,
+        seed: int | None = None,
+        options: dict | None = None,
+    ) -> Tuple[Dict[str, Any], Dict[str, Dict]]:
         """
         Resets the environment.
         """
-        super().reset()
+        super().reset(seed=seed, options=options)
 
-        return self._observations
+        return self._observations, self._infos
 
     def step(self, actions: Dict[str, Any]) -> Tuple:
         self._assert_loaded()
@@ -50,4 +54,10 @@ class UnityParallelEnv(UnityPettingzooBaseEnv, ParallelEnv):
         self._cleanup_agents()
         self._live_agents.sort()  # unnecessary, only for passing API test
 
-        return self._observations, self._rewards, self._dones, self._infos
+        return (
+            self._observations,
+            self._rewards,
+            self._terminations,
+            self._truncations,
+            self._infos,
+        )
