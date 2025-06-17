@@ -234,7 +234,7 @@ class UnityToGymWrapper(gym.Env):
             self.visual_obs = self._preprocess_single(visual_obs[0][0])
 
         if isinstance(info, TerminalSteps):
-            interrupted = info.interrupted
+            interrupted = info.interrupted[0]
             terminated, truncated = not interrupted, interrupted
         else:
             terminated, truncated = False, False
