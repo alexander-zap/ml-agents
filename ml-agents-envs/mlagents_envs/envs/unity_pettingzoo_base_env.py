@@ -133,7 +133,7 @@ class UnityPettingzooBaseEnv:
                         continue
                 if act_spec.continuous_size > 0:
                     c_space = spaces.Box(
-                        -1, 1, (act_spec.continuous_size,), dtype=np.int32
+                        -1, 1, (act_spec.continuous_size,), dtype=np.float64
                     )
                     if self._seed is not None:
                         c_space.seed(self._seed)
