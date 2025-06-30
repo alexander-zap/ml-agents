@@ -169,7 +169,7 @@ class UnityPettingzooBaseEnv:
             if action.continuous is not None:
                 self._current_action[current_behavior].continuous[
                     current_index
-                ] = action.continuous[0]
+                ] = action.continuous
             if action.discrete is not None:
                 self._current_action[current_behavior].discrete[
                     current_index
@@ -186,7 +186,33 @@ class UnityPettingzooBaseEnv:
     def _step(self):
         for behavior_name, actions in self._current_action.items():
             self._env.set_actions(behavior_name, actions)
-        self._env.step()
+
+        def step_and_return_steps(behavior_name):
+            self._env.step()
+            decision_steps, termination_steps = self._env.get_steps(behavior_name)
+            return decision_steps, termination_steps
+
+        # DecisionSteps are assumed come in synchronously at every `DecisionPeriod` frame,
+        #   but TerminationSteps can be sent inbetween. Therefore, to collect step information about all agents,
+        #   we need to continue stepping the environment.
+        # NOTE: This can lead to returning TerminationSteps and subsequent DecisionSteps at the same time for an agent
+        #   (but this was also possible before).
+        for behavior_name in self._env.behavior_specs.keys():
+            decision_steps, termination_steps = step_and_return_steps(behavior_name)
+            collected_decision_steps = decision_steps
+            collected_termination_steps = termination_steps
+            while not len(set(collected_decision_steps.agent_id)) >= len(self._agents):
+                decision_steps, termination_steps = step_and_return_steps(behavior_name)
+                if len(decision_steps) > 0:
+                    collected_decision_steps += decision_steps
+                if len(termination_steps) > 0:
+                    collected_termination_steps += termination_steps
+
+        self._env._env_state[behavior_name] = (
+            collected_decision_steps,
+            collected_termination_steps,
+        )
+
         self._reset_states()
         for behavior_name in self._env.behavior_specs.keys():
             terminations, truncations, rewards, cumulative_rewards = self._batch_update(
@@ -311,7 +337,7 @@ class UnityPettingzooBaseEnv:
 
     @property
     def agents(self):
-        return sorted(self._live_agents)
+        return sorted(self._agents)
 
     @property
     def rewards(self):

@@ -138,6 +138,30 @@ class DecisionSteps(Mapping):
     def __iter__(self) -> Iterator[Any]:
         yield from self.agent_id
 
+    def __add__(self, other: "DecisionSteps") -> "DecisionSteps":
+        assert isinstance(other, DecisionSteps)
+
+        combined_terminal_steps = DecisionSteps(
+            list(np.hstack([self.obs, other.obs])),
+            np.hstack([self.reward, other.reward]),
+            np.hstack([self.agent_id, other.agent_id]),
+            list(np.hstack([self.action_mask, other.action_mask]))
+            if self.action_mask or other.action_mask
+            else None,
+            np.hstack([self.group_id, other.group_id]),
+            np.hstack([self.group_reward, other.group_reward]),
+        )
+        combined_terminal_steps._agent_id_to_index = {
+            **self.agent_id_to_index,
+            # shift index of added termination steps because of appending
+            **{
+                agent_id: index + len(self)
+                for agent_id, index in other.agent_id_to_index.items()
+            },
+        }
+
+        return combined_terminal_steps
+
     @staticmethod
     def empty(spec: "BehaviorSpec") -> "DecisionSteps":
         """
@@ -244,6 +268,28 @@ class TerminalSteps(Mapping):
 
     def __iter__(self) -> Iterator[Any]:
         yield from self.agent_id
+
+    def __add__(self, other: "TerminalSteps") -> "TerminalSteps":
+        assert isinstance(other, TerminalSteps)
+
+        combined_terminal_steps = TerminalSteps(
+            list(np.hstack([self.obs, other.obs])),
+            np.hstack([self.reward, other.reward]),
+            np.hstack([self.interrupted, other.interrupted]),
+            np.hstack([self.agent_id, other.agent_id]),
+            np.hstack([self.group_id, other.group_id]),
+            np.hstack([self.group_reward, other.group_reward]),
+        )
+        combined_terminal_steps._agent_id_to_index = {
+            **self.agent_id_to_index,
+            # shift index of added termination steps because of appending
+            **{
+                agent_id: index + len(self)
+                for agent_id, index in other.agent_id_to_index.items()
+            },
+        }
+
+        return combined_terminal_steps
 
     @staticmethod
     def empty(spec: "BehaviorSpec") -> "TerminalSteps":

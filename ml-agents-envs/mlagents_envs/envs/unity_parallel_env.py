@@ -50,8 +50,7 @@ class UnityParallelEnv(UnityPettingzooBaseEnv, ParallelEnv):
         # Step environment
         self._step()
 
-        # Agent cleanup and sorting
-        self._cleanup_agents()
+        # Agent sorting
         self._live_agents.sort()  # unnecessary, only for passing API test
 
         return (
